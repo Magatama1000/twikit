@@ -475,12 +475,13 @@ class Client:
                 }
             })
 
-        await flow.execute_task({
-            'subtask_id': 'AccountDuplicationCheck',
-            'check_logged_in_account': {
-                'link': 'AccountDuplicationCheck_false'
-            }
-        })
+        # TODO use another endpoint to grab full ct0
+        #await flow.execute_task({
+        #    'subtask_id': 'AccountDuplicationCheck',
+        #    'check_logged_in_account': {
+        #        'link': 'AccountDuplicationCheck_false'
+        #    }
+        #})
 
         if cookies_file:
             self.save_cookies(cookies_file)

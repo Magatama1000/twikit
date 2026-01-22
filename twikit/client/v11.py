@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
     ClientType = Client | GuestClient
 
-from ..constants import DOMAIN
+from ..constants import TOKEN2, DOMAIN
 
 class Endpoint:
     GUEST_ACTIVATE = f'https://api.{DOMAIN}/1.1/guest/activate.json'
@@ -58,6 +58,8 @@ class V11Client:
         headers = self.base._base_headers
         headers.pop('X-Twitter-Active-User', None)
         headers.pop('X-Twitter-Auth-Type', None)
+        headers.pop('X-Client-Transaction-Id', None)
+        headers["authorization"] = f"Bearer {TOKEN2}"
         return await self.base.post(
             Endpoint.GUEST_ACTIVATE,
             headers=headers,
@@ -80,7 +82,7 @@ class V11Client:
 
         headers = {
             'x-guest-token': guest_token,
-            'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAFXzAwAAAAAAMHCxpeSDG1gLNLghVe8d74hl6k4%3DRUMF4xAQLsbeBhTSRrCiQpJtxoGWeyHrDb5te2jpGskWDFW82F'
+            'Authorization': f"Bearer {TOKEN2}"
         }
 
         if self.base._get_csrf_token():
@@ -100,6 +102,7 @@ class V11Client:
         }
         headers.pop('X-Twitter-Active-User')
         headers.pop('X-Twitter-Auth-Type')
+        headers["authorization"] = f"Bearer {TOKEN2}"
         return await self.base.post(
             Endpoint.ONBOARDING_SSO_INIT,
             json={'provider': provider},
