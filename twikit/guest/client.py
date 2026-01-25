@@ -11,7 +11,7 @@ from httpx._utils import URLPattern
 
 from ..client.gql import GQLClient
 from ..client.v11 import V11Client
-from ..constants import DOMAIN, TOKEN
+from ..constants import DOMAIN, TOKEN, TOKEN2
 from ..errors import (
     BadRequest,
     Forbidden,
@@ -106,19 +106,21 @@ class GuestClient:
         ':meta private:'
         headers = kwargs.pop('headers', {})
 
-        if not self.client_transaction.home_page_response:
-            cookies_backup = dict(self.http.cookies).copy()
-            ct_headers = {
-                'Accept-Language': f'{self.language},{self.language.split("-")[0]};q=0.9',
-                'Cache-Control': 'no-cache',
-                'Referer': f'https://{DOMAIN}',
-                'User-Agent': self._user_agent
-            }
-            await self.client_transaction.init(self.http, ct_headers)
-            self.http.cookies = cookies_backup
+        #if not self.client_transaction.home_page_response:
+        #    cookies_backup = dict(self.http.cookies).copy()
+        #    ct_headers = {
+        #        'authorization': f'Bearer {TOKEN3}',
+        #        'Accept-Language': f'{self.language},{self.language.split("-")[0]};q=0.9',
+        #        'Cache-Control': 'no-cache',
+        #        'Referer': f'https://{DOMAIN}',
+        #        'User-Agent': 'TwitterAndroid/10.89.0-release.0 (310890000-r-0) G011A/9 (google;G011A;google;G011A;0;;1;2016)'
+        #    }
+        #    headers.pop('authorization', None)
+        #    await self.client_transaction.init(self.http, ct_headers)
+        #    self.http.cookies = cookies_backup
 
-        tid = self.client_transaction.generate_transaction_id(method=method, path=urlparse(url).path)
-        headers['X-Client-Transaction-Id'] = tid
+        #tid = self.client_transaction.generate_transaction_id(method=method, path=urlparse(url).path)
+        #headers['X-Client-Transaction-Id'] = tid
 
         response = await self.http.request(method, url, headers=headers, **kwargs)
 
@@ -182,7 +184,8 @@ class GuestClient:
         Base headers for Twitter API requests.
         """
         headers = {
-            'authorization': f'Bearer {self._token}',
+            'authorization': f'Bearer {TOKEN}',
+            'User-Agent': 'TwitterAndroid/10.89.0-release.0 (310890000-r-0) G011A/9 (google;G011A;google;G011A;0;;1;2016)',
             'content-type': 'application/json',
             'X-Twitter-Active-User': 'yes',
             'Referer': f'https://{DOMAIN}',

@@ -131,21 +131,21 @@ class Client:
         ':meta private:'
         headers = kwargs.pop('headers', {})
 
-        if not self.client_transaction.home_page_response:
-            cookies_backup = self.get_cookies().copy()
-            ct_headers = {
-                'Accept-Language': f'{self.language},{self.language.split("-")[0]};q=0.9',
-                'Cache-Control': 'no-cache',
-                'Referer': f'https://{DOMAIN}',
-                'User-Agent': self._user_agent
-            }
-            await self.client_transaction.init(self.http, ct_headers)
-            self.set_cookies(cookies_backup, clear_cookies=True)
+        #if not self.client_transaction.home_page_response:
+        #    cookies_backup = self.get_cookies().copy()
+        #    ct_headers = {
+        #        'Accept-Language': f'{self.language},{self.language.split("-")[0]};q=0.9',
+        #        'Cache-Control': 'no-cache',
+        #        'Referer': f'https://{DOMAIN}',
+        #        'User-Agent': self._user_agent
+        #    }
+        #    await self.client_transaction.init(self.http, ct_headers)
+        #    self.set_cookies(cookies_backup, clear_cookies=True)
 
-        tid = self.client_transaction.generate_transaction_id(method=method, path=urlparse(url).path)
-        headers['X-Client-Transaction-Id'] = tid
+        #tid = self.client_transaction.generate_transaction_id(method=method, path=urlparse(url).path)
+        #headers['X-Client-Transaction-Id'] = tid
         headers['User-Agent'] = self._user_agent
-
+        
         cookies_backup = self.get_cookies().copy()
         response = await self.http.request(method, url, headers=headers, **kwargs)
         self._remove_duplicate_ct0_cookie()
@@ -274,11 +274,16 @@ class Client:
             headers['X-Act-As-User-Id'] = self._act_as
         return headers
 
+    async def _get_login_token(self) -> str:
+        response, _ = await self.v11.login_activate()
+        guest_token = response['guest_token']
+        return guest_token
+
     async def _get_guest_token(self) -> str:
         response, _ = await self.v11.guest_activate()
         guest_token = response['guest_token']
         return guest_token
-
+    
     async def _ui_metrics(self) -> str:
         response, _ = await self.get(f'https://twitter.com/i/js_inst?c_name=ui_metrics') # keep twitter.com here
         return response
@@ -336,8 +341,7 @@ class Client:
         if cookies_file and os.path.exists(cookies_file):
             self.load_cookies(cookies_file)
             return
-
-        guest_token = await self._get_guest_token()
+        guest_token = await self._get_login_token()
 
         flow = Flow(self, guest_token)
 
@@ -475,7 +479,6 @@ class Client:
                 }
             })
 
-        # TODO use another endpoint to grab full ct0
         #await flow.execute_task({
         #    'subtask_id': 'AccountDuplicationCheck',
         #    'check_logged_in_account': {
@@ -1525,7 +1528,7 @@ class Client:
                 results.append(tweet)
 
         if entries[-1]['entryId'].startswith('cursor'):
-            next_cursor = entries[-1]['content']['value']
+            next_cursor = entries[-1]['content']['itemContent']['value']
             _fetch_next_result = partial(self._get_more_replies, tweet_id, next_cursor)
         else:
             next_cursor = None

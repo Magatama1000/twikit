@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
     ClientType = Client | GuestClient
 
-from ..constants import TOKEN2, DOMAIN
+from ..constants import TOKEN, TOKEN2, DOMAIN
 
 class Endpoint:
     GUEST_ACTIVATE = f'https://api.{DOMAIN}/1.1/guest/activate.json'
@@ -53,13 +53,26 @@ class Endpoint:
 class V11Client:
     def __init__(self, base: ClientType) -> None:
         self.base = base
+    
+    # TODO cleanup
+    async def login_activate(self):
+        headers = self.base._base_headers
+        headers.pop('X-Twitter-Active-User', None)
+        headers.pop('X-Twitter-Auth-Type', None)
+        headers.pop('X-Client-Transaction-Id', None)
+        headers["authorization"] = f"Bearer {TOKEN2}"
+        return await self.base.post(
+            Endpoint.GUEST_ACTIVATE,
+            headers=headers,
+            data={}
+        )
 
     async def guest_activate(self):
         headers = self.base._base_headers
         headers.pop('X-Twitter-Active-User', None)
         headers.pop('X-Twitter-Auth-Type', None)
         headers.pop('X-Client-Transaction-Id', None)
-        headers["authorization"] = f"Bearer {TOKEN2}"
+        headers["authorization"] = f"Bearer {TOKEN}"
         return await self.base.post(
             Endpoint.GUEST_ACTIVATE,
             headers=headers,
